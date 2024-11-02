@@ -1869,7 +1869,9 @@ class RequestHandler(object):
         if isinstance(value, HTTPError):
             if value.log_message:
                 format = "%d %s: " + value.log_message
-                args = [value.status_code, self._request_summary()] + list(value.args)
+                args = [value.status_code, self._request_summary()] + list(
+                    value.log_args
+                )
                 gen_log.warning(format, *args)
         else:
             app_log.error(
@@ -2474,7 +2476,7 @@ class HTTPError(Exception):
     ) -> None:
         self.status_code = status_code
         self.log_message = log_message
-        self.args = args
+        self.log_args = args
         self.reason = kwargs.get("reason", None)
         if log_message and not args:
             self.log_message = log_message.replace("%", "%%")
@@ -2485,7 +2487,7 @@ class HTTPError(Exception):
             self.reason or httputil.responses.get(self.status_code, "Unknown"),
         )
         if self.log_message:
-            return message + " (" + (self.log_message % self.args) + ")"
+            return message + " (" + (self.log_message % self.log_args) + ")"
         else:
             return message
 
